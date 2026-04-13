@@ -1,51 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asset Inventory</title>
     <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/tables.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/dashboards.js"></script>
 </head>
 <body>
     <div class="layout">
         <nav class="sidebar">
-            <h2>Menu</h2>
-            <a href="admin-dashboard.html">Dashboard</a>
+            <h2 id="sidebar-title">Menu</h2>
+            <a href="#" id="nav-dashboard">Dashboard</a>
             <a href="asset-list.html">All Assets</a>
-            <a href="#" onclick="logout()">Logout</a>
+            <a href="#" onclick="logout()" style="margin-top: auto; color: #e74c3c;">Logout</a>
         </nav>
-        <main class="content">
-            <header><h1 id="user-welcome">Asset Inventory</h1></header>
 
-            <div class="card" id="admin-asset-form-container" style="display:none;">
-                <h3>Add New Asset</h3>
-                <form id="create-asset-form" class="custom-form">
-                    <input type="text" id="asset-name" placeholder="Asset Name (e.g., Dell XPS 15)" required>
-                    <select id="asset-category">
-                        <option value="IT">IT Equipment</option>
-                        <option value="Furniture">Furniture</option>
+        <main class="content">
+            <header>
+                <h1>Asset Inventory</h1>
+                <span id="user-name-display" style="font-weight: bold;"></span>
+            </header>
+
+            <div class="card" id="admin-asset-form-container" style="display:none; background: #e8f4f8; border: 1px solid #bce8f1;">
+                <h3 style="margin-bottom: 15px;">+ Add New Asset</h3>
+                <form id="create-asset-form" class="custom-form" onsubmit="createAsset(event)" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" id="asset-name" placeholder="Asset Name (e.g., Dell XPS 15)" required style="flex: 1; min-width: 200px;">
+                    <input type="text" id="asset-serial" placeholder="Serial Number" style="flex: 1; min-width: 200px;">
+                    <select id="asset-category" style="flex: 1; min-width: 200px;">
+                        <option value="1">IT Equipment</option>
+                        <option value="2">Furniture</option>
+                        <option value="3">Vehicle</option>
                     </select>
-                    <button type="submit" class="btn btn-primary">Add Asset</button>
+                    <button type="submit" class="btn btn-primary" style="width: auto; margin-top: 0; padding: 10px 20px;">Save Asset</button>
                 </form>
             </div>
 
             <div class="card">
-                <h3>Asset List</h3>
+                <h3>Organization Assets</h3>
                 <table class="data-table">
-                    <thead><tr><th>Name</th><th>Category</th><th>Status</th><th>Assigned To</th></tr></thead>
-                    <tbody id="asset-table-body"></tbody>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Serial No.</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Assigned To</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assets-list-tbody">
+                        <tr><td colspan="5">Loading assets...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </main>
     </div>
-    <script src="../js/auth.js"></script>
-    <script src="../js/api.js"></script>
-    <script src="../js/dashboards.js"></script>
+
     <script>
-        checkAuth(); 
-        loadAssets();
-        // Only show add form to Admins [cite: 156]
-        if(localStorage.getItem('userRole') === 'Admin') {
-            document.getElementById('admin-asset-form-container').style.display = 'block';
-        }
+        // Setup page based on Role
+        document.addEventListener('DOMContentLoaded', () => {
+            const role = localStorage.getItem('userRole');
+            if (!role) { window.location.href = '../index.html'; return; }
+
+            // 1. Fix Case Sensitivity Issue here (use lowercase)
+            if (role === 'admin') {
+                document.getElementById('admin-asset-form-container').style.display = 'block';
+                document.getElementById('sidebar-title').innerText = 'Admin Panel';
+                document.getElementById('nav-dashboard').href = 'admin-dashboard.html';
+            } else if (role === 'manager') {
+                document.getElementById('sidebar-title').innerText = 'Manager Panel';
+                document.getElementById('nav-dashboard').href = 'manager-dashboard.html';
+            } else {
+                document.getElementById('sidebar-title').innerText = 'Staff Portal';
+                document.getElementById('nav-dashboard').href = 'staff-dashboard.html';
+            }
+
+            document.getElementById('user-name-display').innerText = localStorage.getItem('userName');
+            
+            // Fetch assets
+            loadAssetsPage();
+        });
     </script>
 </body>
 </html>

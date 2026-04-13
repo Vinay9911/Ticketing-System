@@ -1,39 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/dashboards.css">
     <link rel="stylesheet" href="../css/tables.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/dashboards.js"></script>
 </head>
 <body>
     <div class="layout">
         <nav class="sidebar">
             <h2>Admin Panel</h2>
-            <a href="admin-dashboard.html">All Tickets</a>
-            <a href="#" onclick="logout()">Logout</a>
+            <a href="admin-dashboard.html">Dashboard</a>
+            <a href="asset-list.html">All Assets</a>
+            <a href="#" onclick="logout()" style="margin-top: auto; color: #e74c3c;">Logout</a>
         </nav>
+
         <main class="content">
             <header>
-                <h1 id="user-welcome">Dashboard</h1>
+                <h1>Dashboard Overview</h1>
+                <span id="user-name-display" style="font-weight: bold;"></span>
             </header>
-            
+
+            <div class="kpi-row">
+                <div class="kpi-card">
+                    <h3>Total Assets</h3>
+                    <h2 id="kpi-total-assets">0</h2>
+                </div>
+                <div class="kpi-card">
+                    <h3>Active Assets</h3>
+                    <h2 id="kpi-active-assets">0</h2>
+                </div>
+                <div class="kpi-card alert">
+                    <h3>Open Tickets</h3>
+                    <h2 id="kpi-open-tickets">0</h2>
+                </div>
+            </div>
+
             <div class="card">
-                <h3>All Organization Tickets</h3>
+                <h3>Quick Actions</h3>
+                <div style="display: flex; gap: 15px; margin-top: 15px;">
+                    <button class="btn btn-primary" onclick="window.location.href='asset-list.html'" style="width: auto; padding: 10px 20px;">+ Add New Asset</button>
+                    <button class="btn btn-manager" style="width: auto; padding: 10px 20px;" disabled>+ Create Ticket (Pending)</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Recent Tickets</h3>
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>ID</th><th>Title</th><th>Priority</th><th>Raised By</th><th>Status</th><th>Action</th>
+                            <th>Ticket No</th>
+                            <th>Title</th>
+                            <th>Priority</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody id="ticket-table-body"></tbody>
+                    <tbody id="recent-tickets-tbody">
+                        <tr><td colspan="4">Loading...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </main>
     </div>
-    <script src="../js/auth.js"></script>
-    <script src="../js/api.js"></script>
-    <script src="../js/tickets.js"></script>
-    <script>checkAuth(); loadTickets(true);</script>
 </body>
 </html>

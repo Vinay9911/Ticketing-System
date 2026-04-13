@@ -1,13 +1,24 @@
 const express = require('express');
 const cors = require('cors');
+const db = require('./config/db'); 
+const assetRoutes = require('./routes/assetRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
-const assetRoutes = require('./routes/assetRoutes'); // ADD THIS
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/tickets', ticketRoutes);
-app.use('/api/assets', assetRoutes); // ADD THIS
+// Health Check
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', message: 'API is running' });
+});
 
-app.listen(3000, () => console.log(`Backend running on http://localhost:3000`));
+// Mount Routes matching the PDF Base URL /api/v1 [cite: 77]
+app.use('/api/v1/assets', assetRoutes);
+app.use('/api/v1/tickets', ticketRoutes);
+
+app.listen(PORT, () => {
+    console.log(`Backend running on http://localhost:${PORT}`);
+});

@@ -1,64 +1,50 @@
-// This file handles fetching data and building charts/KPIs for the dashboards
+// --- NEW: ASSET PAGE LOGIC ---
 
-async function loadManagerKPIs() {
-    // In a real app, this would hit a specific /reports/manager-kpi endpoint
-    const ticketData = await apiFetch('/tickets');
-    const assetData = await apiFetch('/assets');
-    
-    if(!ticketData || !assetData) return;
+async function loadAssetsPage() {
+    try {
+        const response = await apiFetch('/assets');
+        const tbody = document.getElementById('assets-list-tbody');
+        if (!tbody) return;
 
-    const totalTickets = ticketData.tickets.length;
-    const openTickets = ticketData.tickets.filter(t => t.status === 'open').length;
-    const totalAssets = assetData.assets ? assetData.assets.length : 0;
+        if (response.assets.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5">No assets found.</td></tr>`;
+            return;
+        }
 
-    const kpiContainer = document.getElementById('kpi-container');
-    if(kpiContainer) {
-        kpiContainer.innerHTML = `
-            <div style="display:flex; gap:20px; margin-bottom: 20px;">
-                <div class="card" style="flex:1; text-align:center;">
-                    <h3>Dept Assets</h3><h2>${totalAssets}</h2>
-                </div>
-                <div class="card" style="flex:1; text-align:center;">
-                    <h3>Total Tickets</h3><h2>${totalTickets}</h2>
-                </div>
-                <div class="card" style="flex:1; text-align:center;">
-                    <h3>Open Tickets</h3><h2 style="color:#e74c3c;">${openTickets}</h2>
-                </div>
-            </div>
-        `;
+        tbody.innerHTML = response.assets.map(a => `
+            <tr>
+                <td><strong>${a.name}</strong></td>
+                <td>${a.serial_number || 'N/A'}</td>
+                <td>${a.category_name || 'N/A'}</td>
+                <td><span class="badge ${a.status}">${a.status.replace('_', ' ').toUpperCase()}</span></td>
+                <td>${a.assigned_user_name || 'Unassigned'}</td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error("Failed to load assets:", error);
     }
 }
 
-// Logic for the asset page
-async function loadAssets() {
-    const data = await apiFetch('/assets');
-    const tbody = document.getElementById('asset-table-body');
-    if(!data || !data.assets || !tbody) return;
+async function createAsset(event) {
+    event.preventDefault();
+    
+    const payload = {
+        name: document.getElementById('asset-name').value,
+        serial_number: document.getElementById('asset-serial').value,
+        category_id: document.getElementById('asset-category').value
+    };
 
-    tbody.innerHTML = '';
-    data.assets.forEach(a => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${a.name}</td>
-                <td>${a.category}</td>
-                <td><strong>${a.status.toUpperCase()}</strong></td>
-                <td>${a.assigned_to || 'Unassigned'}</td>
-            </tr>
-        `;
-    });
-}
-
-// Handle Asset Form Submission
-const assetForm = document.getElementById('create-asset-form');
-if (assetForm) {
-    assetForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const payload = {
-            name: document.getElementById('asset-name').value,
-            category: document.getElementById('asset-category').value
-        };
-        await apiFetch('/assets', 'POST', payload);
-        assetForm.reset();
-        loadAssets(); // Reload the table
-    });
+    try {
+        await apiFetch('/assets', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+        alert('Asset Created Successfully!');
+        
+        // Reset form and reload table
+        document.getElementById('create-asset-form').reset();
+        loadAssetsPage(); 
+    } catch (error) {
+        console.error('Error creating asset:', error);
+    }
 }

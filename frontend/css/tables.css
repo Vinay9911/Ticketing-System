@@ -1,12 +1,42 @@
-/* forms.css */
-.login-bg { display: flex; justify-content: center; align-items: center; height: 100vh; }
-.login-box { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 300px; text-align: center; }
-.btn { width: 100%; padding: 10px; margin-top: 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; }
-.btn-admin { background: #e74c3c; } .btn-manager { background: #f39c12; } .btn-staff { background: #27ae60; } .btn-primary { background: var(--primary); }
-.custom-form input, .custom-form textarea, .custom-form select { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+.data-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-top: 15px; 
+}
 
-/* tables.css */
-.data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-.data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-.data-table th { background: #f9f9f9; font-weight: bold; }
-.status-select { padding: 5px; border-radius: 4px; border: 1px solid #ccc; }
+.data-table th, 
+.data-table td { 
+    padding: 12px; 
+    text-align: left; 
+    border-bottom: 1px solid #eee; 
+}
+
+.data-table th { 
+    background: #f9f9f9; 
+    font-weight: bold; 
+    color: #2c3e50;
+}
+
+.data-table tr:hover {
+    background-color: #f1f2f6;
+}
+
+.status-select { 
+    padding: 5px; 
+    border-radius: 4px; 
+    border: 1px solid #ccc; 
+}
+
+.badge {
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+}
+
+.badge.open { background-color: #e74c3c; }
+.badge.in_progress { background-color: #f39c12; }
+.badge.resolved { background-color: #27ae60; }
+.badge.closed { background-color: #95a5a6; }
