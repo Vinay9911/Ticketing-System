@@ -3,22 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asset & Ticketing System - Login</title>
-    <link rel="stylesheet" href="css/global.css">
-    <script src="js/auth.js"></script>
-    <style>
-        .login-container { max-width: 400px; margin: 100px auto; text-align: center; font-family: Arial, sans-serif; }
-        .login-btn { display: block; width: 100%; padding: 15px; margin: 10px 0; font-size: 16px; cursor: pointer; }
-    </style>
+    <title>Asset Management & Ticketing System</title>
+    <meta name="description" content="Internal asset management and ticketing system for tracking company assets, managing maintenance schedules, and resolving support tickets.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;550;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+    <!-- CSS Design System -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/animations.css">
 </head>
 <body>
-    <div class="login-container">
-        <h2>Simulated Main App Login</h2>
-        <p>Select your role to generate the local authentication context.</p>
-        
-        <button class="login-btn" onclick="login('admin', 1, 'Admin User')">Login as Admin</button>
-        <button class="login-btn" onclick="login('manager', 2, 'Manager User')">Login as Manager</button>
-        <button class="login-btn" onclick="login('staff', 3, 'Staff User')">Login as Staff</button>
+    <!-- SPA Root -->
+    <div id="app">
+        <div style="display:flex;align-items:center;justify-content:center;height:100vh">
+            <div class="spinner"></div>
+        </div>
     </div>
+
+    <!-- JS Core (load order matters) -->
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/router.js"></script>
+
+    <!-- Views -->
+    <script src="js/views/login.js"></script>
+    <script src="js/views/dashboard-admin.js"></script>
+    <script src="js/views/dashboard-manager.js"></script>
+    <script src="js/views/dashboard-staff.js"></script>
+    <script src="js/views/asset-list.js"></script>
+    <script src="js/views/asset-detail.js"></script>
+    <script src="js/views/asset-form.js"></script>
+    <script src="js/views/asset-categories.js"></script>
+    <script src="js/views/maintenance-list.js"></script>
+    <script src="js/views/maintenance-form.js"></script>
+    <script src="js/views/ticket-list.js"></script>
+    <script src="js/views/ticket-detail.js"></script>
+    <script src="js/views/ticket-form.js"></script>
+    <script src="js/views/notifications.js"></script>
+    <script src="js/views/reports.js"></script>
+    <script src="js/views/audit-logs.js"></script>
+
+    <!-- App Init (must be last) -->
+    <script src="js/app.js"></script>
 </body>
 </html>

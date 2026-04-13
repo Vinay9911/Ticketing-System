@@ -1,8 +1,11 @@
 const db = require('../config/db');
 
+/**
+ * Authenticates the request using simulated headers.
+ * In production, this would validate a JWT from Authorization header.
+ * Populates req.user with { id, role, name, departmentId }.
+ */
 const requireAuth = (req, res, next) => {
-    // In the future, this will extract and verify a JWT from req.headers.authorization
-    // For now, we read the simulated headers sent by our Vanilla JS frontend
     const role = req.headers['x-user-role'];
     const userId = req.headers['x-user-id'];
     const userName = req.headers['x-user-name'];
@@ -11,16 +14,22 @@ const requireAuth = (req, res, next) => {
         return res.status(401).json({ error: 'Unauthorized: Missing user context headers' });
     }
 
-    // Mocking the decoded JWT payload
+    // Look up department from DB so managers can filter by dept
+    const user = db.prepare('SELECT department_id FROM users WHERE id = ?').get(parseInt(userId));
+
     req.user = {
         id: parseInt(userId),
         role: role.toLowerCase(),
-        name: userName
+        name: userName || 'Unknown',
+        departmentId: user ? user.department_id : null
     };
 
     next();
 };
 
+/**
+ * RBAC middleware — restricts route to specified roles.
+ */
 const requireRole = (allowedRoles) => {
     return (req, res, next) => {
         if (!req.user || !allowedRoles.includes(req.user.role)) {

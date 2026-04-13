@@ -1,23 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const assetController = require('../controllers/assetController');
+const ac = require('../controllers/assetController');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
-// All asset routes require authentication [cite: 77]
 router.use(requireAuth);
 
-router.get('/', assetController.getAssets);
-router.get('/categories', assetController.getCategories);
-router.get('/:id', assetController.getAssetById);
+// Stats (dashboard KPIs)
+router.get('/stats', ac.getStats);
 
-// Admin-only routes [cite: 79]
-router.post('/', requireRole(['admin']), assetController.createAsset);
-router.post('/categories', requireRole(['admin']), (req, res) => {
-    // Implement simple category insert if needed
-    res.json({ message: "Feature coming soon" }); 
-});
+// Categories (must be before /:id routes)
+router.get('/categories', ac.getCategories);
+router.post('/categories', requireRole(['admin']), ac.createCategory);
+router.put('/categories/:id', requireRole(['admin']), ac.updateCategory);
+router.delete('/categories/:id', requireRole(['admin']), ac.deleteCategory);
 
-// Admin & Manager routes
-router.post('/:id/assign', requireRole(['admin', 'manager']), assetController.assignAsset);
+// Asset CRUD
+router.get('/', ac.getAssets);
+router.get('/:id', ac.getAssetById);
+router.post('/', requireRole(['admin']), ac.createAsset);
+router.put('/:id', requireRole(['admin']), ac.updateAsset);
+router.delete('/:id', requireRole(['admin']), ac.deleteAsset);
+
+// Assign / Unassign
+router.post('/:id/assign', requireRole(['admin', 'manager']), ac.assignAsset);
+router.post('/:id/unassign', requireRole(['admin', 'manager']), ac.unassignAsset);
+
+// History
+router.get('/:id/history', ac.getAssetHistory);
 
 module.exports = router;

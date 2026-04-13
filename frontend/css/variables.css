@@ -1,0 +1,85 @@
+/* ════════════════════════════════════════════════════════
+   DESIGN TOKENS — Asset Management & Ticketing System
+   ════════════════════════════════════════════════════════ */
+:root {
+    /* ── Primary (Indigo) ─────────────────────────────── */
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-darker: #4338ca;
+    --primary-light: #818cf8;
+    --primary-bg: rgba(99, 102, 241, 0.08);
+    --primary-border: rgba(99, 102, 241, 0.25);
+
+    /* ── Surface / Background ─────────────────────────── */
+    --bg-body: #f0f2f5;
+    --bg-card: #ffffff;
+    --bg-sidebar: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    --bg-topbar: #ffffff;
+    --bg-hover: #f8fafc;
+    --bg-input: #f8fafc;
+    --bg-modal-overlay: rgba(15, 23, 42, 0.6);
+
+    /* ── Text ─────────────────────────────────────────── */
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --text-white: #f1f5f9;
+    --text-sidebar: #cbd5e1;
+    --text-sidebar-active: #ffffff;
+
+    /* ── Status / Semantic Colors ─────────────────────── */
+    --success: #10b981;
+    --success-dark: #059669;
+    --success-bg: rgba(16, 185, 129, 0.1);
+    --success-border: rgba(16, 185, 129, 0.3);
+
+    --warning: #f59e0b;
+    --warning-dark: #d97706;
+    --warning-bg: rgba(245, 158, 11, 0.1);
+    --warning-border: rgba(245, 158, 11, 0.3);
+
+    --danger: #ef4444;
+    --danger-dark: #dc2626;
+    --danger-bg: rgba(239, 68, 68, 0.1);
+    --danger-border: rgba(239, 68, 68, 0.3);
+
+    --info: #3b82f6;
+    --info-dark: #2563eb;
+    --info-bg: rgba(59, 130, 246, 0.1);
+    --info-border: rgba(59, 130, 246, 0.3);
+
+    --critical: #7c3aed;
+    --critical-bg: rgba(124, 58, 237, 0.1);
+
+    /* ── Borders & Shadows ────────────────────────────── */
+    --border: #e2e8f0;
+    --border-light: #f1f5f9;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.06);
+
+    /* ── Layout ───────────────────────────────────────── */
+    --sidebar-width: 260px;
+    --sidebar-collapsed: 0px;
+    --topbar-height: 64px;
+    --content-padding: 28px;
+
+    /* ── Border Radius ────────────────────────────────── */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+
+    /* ── Transitions ──────────────────────────────────── */
+    --transition-fast: 150ms ease;
+    --transition-base: 250ms ease;
+    --transition-slow: 400ms ease;
+
+    /* ── Font ─────────────────────────────────────────── */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
