@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Asset Inventory</title>
+    <link rel="stylesheet" href="../css/global.css">
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar">
+            <h2>Menu</h2>
+            <a href="admin-dashboard.html">Dashboard</a>
+            <a href="asset-list.html">All Assets</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </nav>
+        <main class="content">
+            <header><h1 id="user-welcome">Asset Inventory</h1></header>
+
+            <div class="card" id="admin-asset-form-container" style="display:none;">
+                <h3>Add New Asset</h3>
+                <form id="create-asset-form" class="custom-form">
+                    <input type="text" id="asset-name" placeholder="Asset Name (e.g., Dell XPS 15)" required>
+                    <select id="asset-category">
+                        <option value="IT">IT Equipment</option>
+                        <option value="Furniture">Furniture</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Add Asset</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>Asset List</h3>
+                <table class="data-table">
+                    <thead><tr><th>Name</th><th>Category</th><th>Status</th><th>Assigned To</th></tr></thead>
+                    <tbody id="asset-table-body"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/dashboards.js"></script>
+    <script>
+        checkAuth(); 
+        loadAssets();
+        // Only show add form to Admins [cite: 156]
+        if(localStorage.getItem('userRole') === 'Admin') {
+            document.getElementById('admin-asset-form-container').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

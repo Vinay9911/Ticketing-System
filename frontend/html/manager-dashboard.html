@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Manager Dashboard</title>
+    <link rel="stylesheet" href="../css/global.css">
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar">
+            <h2>Manager Panel</h2>
+            <a href="manager-dashboard.html">Team Overview</a>
+            <a href="asset-list.html">Dept Assets</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </nav>
+        <main class="content">
+            <header><h1 id="user-welcome">Dashboard</h1></header>
+            
+            <div class="kpi-row" id="kpi-container"></div>
+
+            <div class="card">
+                <h3>Department Tickets</h3>
+                <table class="data-table">
+                    <thead><tr><th>ID</th><th>Title</th><th>Priority</th><th>Status</th></tr></thead>
+                    <tbody id="ticket-table-body"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/dashboards.js"></script>
+    <script src="../js/tickets.js"></script>
+    <script>checkAuth(); loadManagerKPIs(); loadTickets(true);</script>
+</body>
+</html>

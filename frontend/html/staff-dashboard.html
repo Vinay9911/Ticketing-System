@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Staff Dashboard</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/dashboards.css">
+    <link rel="stylesheet" href="../css/tables.css">
+    <link rel="stylesheet" href="../css/forms.css">
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar">
+            <h2>Staff Portal</h2>
+            <a href="staff-dashboard.html">My Tickets</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </nav>
+        <main class="content">
+            <header><h1 id="user-welcome">Dashboard</h1></header>
+            
+            <div class="card">
+                <h3>Create New Ticket</h3>
+                <form id="create-ticket-form" class="custom-form">
+                    <input type="text" id="title" placeholder="Issue Summary" required>
+                    <textarea id="desc" placeholder="Detailed Description" required></textarea>
+                    <select id="priority">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Submit Ticket</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>My Tickets</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>ID</th><th>Title</th><th>Priority</th><th>Status</th></tr>
+                    </thead>
+                    <tbody id="ticket-table-body"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/tickets.js"></script>
+    <script>checkAuth(); loadTickets(false);</script>
+</body>
+</html>

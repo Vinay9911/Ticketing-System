@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/dashboards.css">
+    <link rel="stylesheet" href="../css/tables.css">
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar">
+            <h2>Admin Panel</h2>
+            <a href="admin-dashboard.html">All Tickets</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </nav>
+        <main class="content">
+            <header>
+                <h1 id="user-welcome">Dashboard</h1>
+            </header>
+            
+            <div class="card">
+                <h3>All Organization Tickets</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th><th>Title</th><th>Priority</th><th>Raised By</th><th>Status</th><th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticket-table-body"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/tickets.js"></script>
+    <script>checkAuth(); loadTickets(true);</script>
+</body>
+</html>

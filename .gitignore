@@ -1,0 +1,25 @@
+# =========================
+# Node.js & Dependencies
+# =========================
+**/node_modules/
+npm-debug.log*
+
+# =========================
+# Databases (CRITICAL)
+# =========================
+backend/local.db
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# =========================
+# Environment Variables
+# =========================
+.env
+
+# =========================
+# OS Generated Files
+# =========================
+.DS_Store
+Thumbs.db
