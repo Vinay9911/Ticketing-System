@@ -54,24 +54,37 @@ exports.createSchedule = (req, res) => {
         const { asset_id, scheduled_date, maintenance_type, assigned_to, notes } = req.body;
         if (!asset_id || !scheduled_date) return res.status(400).json({ error: 'Asset and scheduled date are required' });
 
+        // Check asset exists and is not retired
+        const asset = db.prepare('SELECT * FROM assets WHERE id = ? AND is_deleted = 0').get(asset_id);
+        if (!asset) return res.status(404).json({ error: 'Asset not found' });
+        if (asset.status === 'retired') {
+            return res.status(400).json({ error: 'Cannot schedule maintenance on a retired asset' });
+        }
+
+        // Store original status before changing to under_maintenance
+        const previousStatus = asset.status;
+
         // Set asset status to under_maintenance
         db.prepare("UPDATE assets SET status = 'under_maintenance', updated_at = datetime('now') WHERE id = ?").run(asset_id);
 
         const result = db.prepare(`
             INSERT INTO maintenance_schedules (asset_id, scheduled_date, maintenance_type, assigned_to, notes, created_by)
             VALUES (?, ?, ?, ?, ?, ?)
-        `).run(asset_id, scheduled_date, maintenance_type || null, assigned_to || null, notes || null, req.user.id);
+        `).run(asset_id, scheduled_date, maintenance_type || null, assigned_to || null,
+               JSON.stringify({ userNotes: notes || null, previousStatus }), req.user.id);
 
         // Record asset history
-        db.prepare("INSERT INTO asset_history (asset_id, action_type, performed_by, previous_value, new_value, notes) VALUES (?, 'maintenance', ?, NULL, ?, ?)")
-            .run(asset_id, req.user.id, JSON.stringify({ maintenance_type, scheduled_date }), `Maintenance scheduled: ${maintenance_type || 'General'}`);
+        db.prepare("INSERT INTO asset_history (asset_id, action_type, performed_by, previous_value, new_value, notes) VALUES (?, 'maintenance', ?, ?, ?, ?)")
+            .run(asset_id, req.user.id,
+                JSON.stringify({ status: previousStatus }),
+                JSON.stringify({ status: 'under_maintenance', maintenance_type, scheduled_date }),
+                `Maintenance scheduled: ${maintenance_type || 'General'}`);
 
         logAudit(req.user.id, 'maintenance', 'create', result.lastInsertRowid, null, { asset_id, scheduled_date, maintenance_type }, req.ip);
 
         // Notify assigned technician
         if (assigned_to) {
-            const asset = db.prepare('SELECT name FROM assets WHERE id = ?').get(asset_id);
-            createNotification(assigned_to, 'maintenance_due', 'Maintenance Assigned',
+            createNotification(parseInt(assigned_to), 'maintenance_due', 'Maintenance Assigned',
                 `You have been assigned maintenance for ${asset.name} on ${scheduled_date}`, result.lastInsertRowid);
         }
 
@@ -107,17 +120,33 @@ exports.completeSchedule = (req, res) => {
         const id = req.params.id;
         const schedule = db.prepare('SELECT * FROM maintenance_schedules WHERE id = ?').get(id);
         if (!schedule) return res.status(404).json({ error: 'Schedule not found' });
+        if (schedule.status === 'completed') return res.status(400).json({ error: 'This maintenance is already completed' });
 
         db.prepare("UPDATE maintenance_schedules SET status = 'completed', completed_at = datetime('now') WHERE id = ?").run(id);
 
-        // Revert asset to available
-        db.prepare("UPDATE assets SET status = 'available', updated_at = datetime('now') WHERE id = ?").run(schedule.asset_id);
+        // Determine the correct status to restore the asset to
+        // If the asset is currently assigned, restore to in_use; otherwise available
+        let restoreStatus = 'available';
+        try {
+            const notesData = JSON.parse(schedule.notes);
+            if (notesData && notesData.previousStatus && notesData.previousStatus !== 'under_maintenance') {
+                restoreStatus = notesData.previousStatus;
+            }
+        } catch (e) {
+            // notes is plain text, fallback to checking assignment
+            const asset = db.prepare('SELECT assigned_to_user, assigned_to_dept FROM assets WHERE id = ?').get(schedule.asset_id);
+            if (asset && (asset.assigned_to_user || asset.assigned_to_dept)) {
+                restoreStatus = 'in_use';
+            }
+        }
+
+        db.prepare(`UPDATE assets SET status = ?, updated_at = datetime('now') WHERE id = ?`).run(restoreStatus, schedule.asset_id);
 
         db.prepare("INSERT INTO asset_history (asset_id, action_type, performed_by, previous_value, new_value, notes) VALUES (?, 'status_changed', ?, ?, ?, ?)")
             .run(schedule.asset_id, req.user.id,
                 JSON.stringify({ status: 'under_maintenance' }),
-                JSON.stringify({ status: 'available' }),
-                'Maintenance completed, asset back to available');
+                JSON.stringify({ status: restoreStatus }),
+                `Maintenance completed, asset restored to ${restoreStatus}`);
 
         logAudit(req.user.id, 'maintenance', 'complete', id, { status: schedule.status }, { status: 'completed' }, req.ip);
 

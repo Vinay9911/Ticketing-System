@@ -70,8 +70,8 @@ App.views['dashboard-staff'] = {
                 el.innerHTML = assets.map(a => `
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-light)">
                         <div>
-                            <a href="#/assets/${a.id}" style="font-weight:600">${a.name}</a>
-                            <div style="font-size:0.82rem;color:var(--text-secondary)">${a.category_name || ''} ${a.serial_number ? '• ' + a.serial_number : ''}</div>
+                            <a href="#/assets/${a.id}" style="font-weight:600">${App.utils.escapeHtml(a.name)}</a>
+                            <div style="font-size:0.82rem;color:var(--text-secondary)">${App.utils.escapeHtml(a.category_name || '')} ${a.serial_number ? '• ' + a.serial_number : ''}</div>
                         </div>
                         ${App.utils.statusBadge(a.status)}
                     </div>`).join('');
@@ -89,7 +89,7 @@ App.views['dashboard-staff'] = {
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-light)">
                         <div>
                             <a href="#/tickets/${t.id}" style="font-weight:600">${t.ticket_number}</a>
-                            <span style="color:var(--text-secondary);font-size:0.85rem"> — ${t.title}</span>
+                            <span style="color:var(--text-secondary);font-size:0.85rem"> — ${App.utils.escapeHtml(t.title)}</span>
                         </div>
                         <div style="display:flex;gap:6px">${App.utils.priorityBadge(t.priority)} ${App.utils.statusBadge(t.status)}</div>
                     </div>`).join('');
@@ -107,8 +107,8 @@ App.views['dashboard-staff'] = {
                     <div style="display:flex;align-items:start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-light);opacity:${n.is_read ? '0.6' : '1'}">
                         <div style="width:8px;height:8px;border-radius:50%;background:${n.is_read ? 'var(--border)' : 'var(--primary)'};margin-top:6px;flex-shrink:0"></div>
                         <div>
-                            <div style="font-weight:600;font-size:0.88rem">${n.title}</div>
-                            <div style="font-size:0.82rem;color:var(--text-secondary)">${n.message}</div>
+                            <div style="font-weight:600;font-size:0.88rem">${App.utils.escapeHtml(n.title)}</div>
+                            <div style="font-size:0.82rem;color:var(--text-secondary)">${App.utils.escapeHtml(n.message)}</div>
                             <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">${App.utils.timeAgo(n.created_at)}</div>
                         </div>
                     </div>`).join('');

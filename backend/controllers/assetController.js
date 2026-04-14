@@ -75,6 +75,14 @@ exports.getAssetById = (req, res) => {
 exports.createAsset = (req, res) => {
     try {
         const { name, category_id, serial_number, purchase_date, cost, warranty_expiry, location, status, notes } = req.body;
+        if (!name) return res.status(400).json({ error: 'Asset name is required' });
+
+        // Check for duplicate serial number
+        if (serial_number) {
+            const existing = db.prepare('SELECT id FROM assets WHERE serial_number = ? AND is_deleted = 0').get(serial_number);
+            if (existing) return res.status(400).json({ error: 'An asset with this serial number already exists' });
+        }
+
         const result = db.prepare(`
             INSERT INTO assets (name, category_id, serial_number, purchase_date, cost, warranty_expiry, location, status, notes, created_by)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -86,7 +94,8 @@ exports.createAsset = (req, res) => {
 
         res.status(201).json({ message: 'Asset created successfully', id: result.lastInsertRowid });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        if (err.message.includes('UNIQUE')) return res.status(400).json({ error: 'An asset with this serial number already exists' });
+        res.status(500).json({ error: 'Failed to create asset. Please try again.' });
     }
 };
 
@@ -146,6 +155,21 @@ exports.assignAsset = (req, res) => {
         const old = db.prepare('SELECT * FROM assets WHERE id = ? AND is_deleted = 0').get(id);
         if (!old) return res.status(404).json({ error: 'Asset not found' });
 
+        // Block assignment if asset is retired or under maintenance
+        if (old.status === 'retired') {
+            return res.status(400).json({ error: 'Cannot assign a retired asset. Change its status first.' });
+        }
+        if (old.status === 'under_maintenance') {
+            return res.status(400).json({ error: 'Cannot assign an asset that is currently under maintenance. Complete maintenance first.' });
+        }
+
+        // Notify previous assignee that their asset is being reassigned
+        if (old.assigned_to_user && old.assigned_to_user !== parseInt(assigned_to_user)) {
+            const assetInfo = db.prepare('SELECT name FROM assets WHERE id = ?').get(id);
+            createNotification(old.assigned_to_user, 'asset_assigned', 'Asset Reassigned',
+                `${assetInfo.name} has been reassigned away from you by ${req.user.name}`, id);
+        }
+
         db.prepare(`UPDATE assets SET assigned_to_user=?, assigned_to_dept=?, status='in_use', updated_at=datetime('now') WHERE id=?`)
             .run(assigned_to_user || null, assigned_to_dept || null, id);
 
@@ -153,16 +177,16 @@ exports.assignAsset = (req, res) => {
             .run(id, req.user.id,
                 JSON.stringify({ assigned_to_user: old.assigned_to_user, assigned_to_dept: old.assigned_to_dept, status: old.status }),
                 JSON.stringify({ assigned_to_user: assigned_to_user || null, assigned_to_dept: assigned_to_dept || null, status: 'in_use' }),
-                notes || 'Asset assigned');
+                notes || (old.assigned_to_user ? 'Asset reassigned' : 'Asset assigned'));
 
         logAudit(req.user.id, 'asset', 'assign', id,
             { assigned_to_user: old.assigned_to_user, status: old.status },
             { assigned_to_user, status: 'in_use' }, req.ip);
 
-        // Notify the assignee
+        // Notify the new assignee
         if (assigned_to_user) {
             const asset = db.prepare('SELECT name FROM assets WHERE id = ?').get(id);
-            createNotification(assigned_to_user, 'asset_assigned', 'Asset Assigned to You',
+            createNotification(parseInt(assigned_to_user), 'asset_assigned', 'Asset Assigned to You',
                 `${asset.name} has been assigned to you by ${req.user.name}`, id);
         }
 
@@ -197,14 +221,24 @@ exports.unassignAsset = (req, res) => {
 // ─── GET /assets/:id/history ─────────────────────────────
 exports.getAssetHistory = (req, res) => {
     try {
+        const { page = 1, limit = 50 } = req.query;
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+
+        const total = db.prepare('SELECT COUNT(*) as c FROM asset_history WHERE asset_id = ?').get(req.params.id).c;
+
         const history = db.prepare(`
             SELECT h.*, u.name as performed_by_name
             FROM asset_history h
             LEFT JOIN users u ON h.performed_by = u.id
             WHERE h.asset_id = ?
             ORDER BY h.created_at DESC
-        `).all(req.params.id);
-        res.json({ history });
+            LIMIT ? OFFSET ?
+        `).all(req.params.id, parseInt(limit), offset);
+
+        res.json({
+            history,
+            pagination: { page: parseInt(page), limit: parseInt(limit), total, totalPages: Math.ceil(total / parseInt(limit)) }
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

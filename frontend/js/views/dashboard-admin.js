@@ -73,7 +73,7 @@ App.views['dashboard-admin'] = {
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-light)">
                         <div>
                             <a href="#/tickets/${t.id}" style="font-weight:600;font-size:0.88rem">${t.ticket_number}</a>
-                            <div style="font-size:0.82rem;color:var(--text-secondary)">${t.title}</div>
+                            <div style="font-size:0.82rem;color:var(--text-secondary)">${App.utils.escapeHtml(t.title)}</div>
                         </div>
                         ${App.utils.priorityBadge(t.priority)}
                     </div>
@@ -96,8 +96,8 @@ App.views['dashboard-admin'] = {
                 el.innerHTML = dueSoon.map(s => `
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-light)">
                         <div>
-                            <div style="font-weight:600;font-size:0.88rem">${s.asset_name}</div>
-                            <div style="font-size:0.82rem;color:var(--text-secondary)">${s.maintenance_type || 'General'} — ${App.utils.formatDate(s.scheduled_date)}</div>
+                            <div style="font-weight:600;font-size:0.88rem">${App.utils.escapeHtml(s.asset_name)}</div>
+                            <div style="font-size:0.82rem;color:var(--text-secondary)">${App.utils.escapeHtml(s.maintenance_type || 'General')} — ${App.utils.formatDate(s.scheduled_date)}</div>
                         </div>
                         ${App.utils.statusBadge(s.status)}
                     </div>

@@ -11,6 +11,6 @@ router.get('/maintenance-logs', rc.maintenanceLogs);
 router.get('/ticket-summary', rc.ticketSummary);
 router.get('/asset-allocation', rc.assetAllocation);
 router.get('/depreciation', requireRole(['admin']), rc.depreciation);
-router.post('/export', rc.exportReport);
+router.post('/export', rc.exportReport); // report-type role validation is enforced inside exportReport
 
 module.exports = router;

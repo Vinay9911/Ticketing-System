@@ -90,7 +90,7 @@ App.views['dashboard-manager'] = {
             } else {
                 el.innerHTML = unassigned.map(t => `
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-light)">
-                        <div><a href="#/tickets/${t.id}" style="font-weight:600">${t.ticket_number}</a> <span style="color:var(--text-secondary);font-size:0.85rem">— ${t.title}</span></div>
+                        <div><a href="#/tickets/${t.id}" style="font-weight:600">${t.ticket_number}</a> <span style="color:var(--text-secondary);font-size:0.85rem">— ${App.utils.escapeHtml(t.title)}</span></div>
                         ${App.utils.priorityBadge(t.priority)}
                     </div>`).join('');
             }
@@ -105,7 +105,7 @@ App.views['dashboard-manager'] = {
             } else {
                 el.innerHTML = schedules.slice(0, 5).map(s => `
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-light)">
-                        <div><span style="font-weight:600">${s.asset_name}</span> <span style="color:var(--text-secondary);font-size:0.85rem">— ${App.utils.formatDate(s.scheduled_date)}</span></div>
+                        <div><span style="font-weight:600">${App.utils.escapeHtml(s.asset_name)}</span> <span style="color:var(--text-secondary);font-size:0.85rem">— ${App.utils.formatDate(s.scheduled_date)}</span></div>
                         ${App.utils.statusBadge(s.status)}
                     </div>`).join('');
             }

@@ -184,6 +184,11 @@ exports.exportReport = async (req, res) => {
     try {
         const { reportType, format } = req.body;
 
+        // Enforce role restrictions per report type
+        if (reportType === 'depreciation' && req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Only admins can export depreciation reports' });
+        }
+
         if (format === 'excel') {
             const ExcelJS = require('exceljs');
             const workbook = new ExcelJS.Workbook();
