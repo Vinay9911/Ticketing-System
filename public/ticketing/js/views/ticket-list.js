@@ -47,9 +47,21 @@ App.views['ticket-list'] = {
     },
 
     async afterRender(params, queryObj = {}) {
+        // FIX: Reset filters and state when clicking fresh links
+        if (this._lastFilter !== queryObj.filter) {
+            this._page = 1;
+            this._search = '';
+            this._status = '';
+            this._priority = '';
+        }
+        
         this._filter = queryObj.filter || '';
-        if (this._filter === 'my') {
-            document.getElementById('topbar-page-title').textContent = 'My Tickets';
+        this._lastFilter = this._filter;
+
+        // FIX: Ensure title switches back from "My Tickets"
+        const titleEl = document.getElementById('topbar-page-title');
+        if (titleEl) {
+            titleEl.textContent = this._filter === 'my' ? 'My Tickets' : 'All Tickets';
         }
 
         let debounce;

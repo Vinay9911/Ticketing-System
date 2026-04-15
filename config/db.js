@@ -138,6 +138,19 @@ const initSQL = `
         ip_address TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
     );
+
+    -- THE MISSING MAINTENANCE TABLE HAS BEEN ADDED HERE
+    CREATE TABLE IF NOT EXISTS ts_maintenance_schedules (
+        id SERIAL PRIMARY KEY,
+        asset_id INTEGER REFERENCES ts_assets(id),
+        scheduled_date DATE NOT NULL,
+        maintenance_type TEXT NOT NULL,
+        assigned_to INTEGER REFERENCES ts_users(id),
+        status TEXT CHECK(status IN ('pending', 'completed', 'overdue', 'cancelled')) DEFAULT 'pending',
+        notes TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
 `;
 
 // ─── Run ALTER TABLE statements safely for existing deployments ───
@@ -153,7 +166,6 @@ const alterSQL = `
         END IF;
 
         -- Drop and re-add status constraint to include 'scheduled'
-        -- (only if the constraint doesn't already include 'scheduled')
         IF EXISTS (
             SELECT 1 FROM information_schema.table_constraints
             WHERE table_name = 'ts_repairs' AND constraint_type = 'CHECK'
@@ -212,6 +224,9 @@ const indexSQL = `
     CREATE INDEX IF NOT EXISTS idx_ts_notifications_read ON ts_notifications(is_read);
     CREATE INDEX IF NOT EXISTS idx_ts_audit_logs_module ON ts_audit_logs(module);
     CREATE INDEX IF NOT EXISTS idx_ts_audit_logs_user ON ts_audit_logs(user_id);
+    
+    -- THE MISSING MAINTENANCE INDEX HAS BEEN ADDED HERE
+    CREATE INDEX IF NOT EXISTS idx_ts_maintenance_asset ON ts_maintenance_schedules(asset_id);
 `;
 
 // Initialize schema on first import

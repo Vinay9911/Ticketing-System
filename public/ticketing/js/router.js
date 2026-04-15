@@ -64,10 +64,8 @@ App.router = {
     },
 
     matchRoute(hash) {
-        // Exact match first
         if (this.routes[hash]) return { path: hash, params: {} };
 
-        // Pattern matching for :id params
         for (const pattern of Object.keys(this.routes)) {
             const patternParts = pattern.split('/');
             const hashParts = hash.split('/');
@@ -96,14 +94,12 @@ App.router = {
         const view = App.views[viewName];
         const content = document.getElementById('main-content');
 
-        // Update layout for login vs app pages
         if (viewName === 'login') {
             document.getElementById('app').innerHTML = view.render(params, queryObj);
             if (view.afterRender) await view.afterRender(params, queryObj);
             return;
         }
 
-        // Ensure app shell is rendered
         if (!content) {
             App.renderShell();
             await this.renderView(viewName, params, path, queryObj);
@@ -112,16 +108,22 @@ App.router = {
 
         content.innerHTML = `<div class="view-enter">${view.render(params, queryObj)}</div>`;
 
-        // Update active nav link
+        // FIXED: Exact match routing for active links with query strings
+        const currentHashRaw = window.location.hash.slice(1);
+        const currentFullRoute = currentHashRaw.startsWith('/') ? currentHashRaw : '/' + currentHashRaw;
+
         document.querySelectorAll('.nav-link').forEach(link => {
             link.classList.remove('active');
             const href = link.getAttribute('data-route');
-            if (href && (path === href || path.startsWith(href + '/'))) {
-                link.classList.add('active');
+            if (href) {
+                if (href === currentFullRoute) {
+                    link.classList.add('active');
+                } else if (!currentFullRoute.includes('?') && !href.includes('?') && (path === href || path.startsWith(href + '/'))) {
+                    link.classList.add('active');
+                }
             }
         });
 
-        // Update topbar title
         const titles = {
             '/dashboard': 'Dashboard', '/assets': 'Assets', '/assets/new': 'Add New Asset',
             '/categories': 'Asset Categories', '/maintenance': 'Maintenance',
@@ -134,7 +136,8 @@ App.router = {
 
         if (view.afterRender) await view.afterRender(params, queryObj);
 
-        // Update notification count
+        // Reset scroll position on navigation
+        window.scrollTo(0, 0);
         App.updateNotificationCount();
     },
 
