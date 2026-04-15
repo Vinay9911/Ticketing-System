@@ -76,8 +76,9 @@ const initSQL = `
         repair_date DATE NOT NULL,
         issue_description TEXT NOT NULL,
         assigned_to INTEGER REFERENCES ts_users(id),
-        status TEXT CHECK(status IN ('pending','in_progress','completed','cancelled')) DEFAULT 'pending',
+        status TEXT CHECK(status IN ('scheduled','pending','in_progress','completed','cancelled')) DEFAULT 'scheduled',
         cost NUMERIC(12,2),
+        provider TEXT,
         invoice_path TEXT,
         requires_approval BOOLEAN DEFAULT FALSE,
         is_approved BOOLEAN DEFAULT FALSE,
@@ -139,6 +140,60 @@ const initSQL = `
     );
 `;
 
+// ─── Run ALTER TABLE statements safely for existing deployments ───
+const alterSQL = `
+    DO $$
+    BEGIN
+        -- Add provider column if missing
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'ts_repairs' AND column_name = 'provider'
+        ) THEN
+            ALTER TABLE ts_repairs ADD COLUMN provider TEXT;
+        END IF;
+
+        -- Drop and re-add status constraint to include 'scheduled'
+        -- (only if the constraint doesn't already include 'scheduled')
+        IF EXISTS (
+            SELECT 1 FROM information_schema.table_constraints
+            WHERE table_name = 'ts_repairs' AND constraint_type = 'CHECK'
+        ) THEN
+            BEGIN
+                ALTER TABLE ts_repairs DROP CONSTRAINT IF EXISTS ts_repairs_status_check;
+                ALTER TABLE ts_repairs ADD CONSTRAINT ts_repairs_status_check
+                    CHECK (status IN ('scheduled','pending','in_progress','completed','cancelled'));
+            EXCEPTION WHEN OTHERS THEN
+                NULL;
+            END;
+        END IF;
+
+        -- Add express_service_code to ts_assets if missing
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'ts_assets' AND column_name = 'express_service_code'
+        ) THEN
+            ALTER TABLE ts_assets ADD COLUMN express_service_code TEXT;
+        END IF;
+
+        -- Add make_model to ts_assets if missing
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'ts_assets' AND column_name = 'make_model'
+        ) THEN
+            ALTER TABLE ts_assets ADD COLUMN make_model TEXT;
+        END IF;
+
+        -- Add warranty_start_date to ts_assets if missing
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'ts_assets' AND column_name = 'warranty_start_date'
+        ) THEN
+            ALTER TABLE ts_assets ADD COLUMN warranty_start_date DATE;
+        END IF;
+    END
+    $$;
+`;
+
 const indexSQL = `
     CREATE INDEX IF NOT EXISTS idx_ts_assets_status ON ts_assets(status);
     CREATE INDEX IF NOT EXISTS idx_ts_assets_category ON ts_assets(category_id);
@@ -164,6 +219,7 @@ async function initializeDatabase() {
     const client = await pool.connect();
     try {
         await client.query(initSQL);
+        await client.query(alterSQL);
         await client.query(indexSQL);
         console.log('✅ PostgreSQL schema initialized (ts_ prefixed tables)');
     } catch (err) {

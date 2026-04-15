@@ -28,12 +28,20 @@ exports.getAssets = async (req, res) => {
             params.push(`%${search}%`, `%${search}%`, `%${search}%`);
             idx += 3;
         }
-        if (status) { conditions.push(`a.status = $${idx++}`); params.push(status); }
+        if (status)      { conditions.push(`a.status = $${idx++}`);      params.push(status); }
         if (category_id) { conditions.push(`a.category_id = $${idx++}`); params.push(parseInt(category_id)); }
 
-        const { rows: assets, total } = await db.assets.getAll({ conditions, params, limit: parseInt(limit), offset });
+        const { rows: assets, total } = await db.assets.getAll({
+            conditions, params, limit: parseInt(limit), offset
+        });
 
-        res.json({ assets, pagination: { page: parseInt(page), limit: parseInt(limit), total, totalPages: Math.ceil(total / parseInt(limit)) } });
+        res.json({
+            assets,
+            pagination: {
+                page: parseInt(page), limit: parseInt(limit), total,
+                totalPages: Math.ceil(total / parseInt(limit))
+            }
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -53,7 +61,13 @@ exports.getAssetById = async (req, res) => {
 // ─── POST /assets ────────────────────────────────────────
 exports.createAsset = async (req, res) => {
     try {
-        const { name, category_id, serial_number, purchase_date, cost, warranty_expiry, location, status, notes } = req.body;
+        // FIX: now includes all fields the asset-form sends
+        const {
+            name, category_id, serial_number, express_service_code, make_model,
+            purchase_date, cost, warranty_start_date, warranty_expiry,
+            location, status, notes
+        } = req.body;
+
         if (!name) return res.status(400).json({ error: 'Asset name is required' });
 
         if (serial_number) {
@@ -61,13 +75,19 @@ exports.createAsset = async (req, res) => {
             if (existing) return res.status(400).json({ error: 'An asset with this serial number already exists' });
         }
 
-        const id = await db.assets.create({ name, category_id, serial_number, purchase_date, cost, warranty_expiry, location, status, notes, created_by: req.user.id });
+        const id = await db.assets.create({
+            name, category_id, serial_number, express_service_code, make_model,
+            purchase_date, cost, warranty_start_date, warranty_expiry,
+            location, status, notes, created_by: req.user.id
+        });
 
-        await logAudit(req.user.id, 'asset', 'create', id, null, { name, category_id, serial_number, status: status || 'available' }, req.ip);
+        await logAudit(req.user.id, 'asset', 'create', id, null,
+            { name, category_id, serial_number, status: status || 'available' }, req.ip);
 
         res.status(201).json({ message: 'Asset created successfully', id });
     } catch (err) {
-        if (err.message && err.message.includes('unique')) return res.status(400).json({ error: 'An asset with this serial number already exists' });
+        if (err.message && err.message.includes('unique'))
+            return res.status(400).json({ error: 'An asset with this serial number already exists' });
         res.status(500).json({ error: 'Failed to create asset. Please try again.' });
     }
 };
@@ -79,19 +99,33 @@ exports.updateAsset = async (req, res) => {
         const old = await db.assets.getRawById(id);
         if (!old) return res.status(404).json({ error: 'Asset not found' });
 
-        const { name, category_id, serial_number, purchase_date, cost, warranty_expiry, location, status, notes } = req.body;
+        // FIX: now includes all fields so none are silently nulled
+        const {
+            name, category_id, serial_number, express_service_code, make_model,
+            purchase_date, cost, warranty_start_date, warranty_expiry,
+            location, status, notes
+        } = req.body;
 
         const newData = await db.assets.update(id, {
-            name: name || old.name, category_id: category_id ?? old.category_id,
-            serial_number: serial_number ?? old.serial_number, purchase_date: purchase_date ?? old.purchase_date,
-            cost: cost ?? old.cost, warranty_expiry: warranty_expiry ?? old.warranty_expiry,
-            location: location ?? old.location, status: status || old.status, notes: notes ?? old.notes
+            name:                 name                 ?? old.name,
+            category_id:          category_id          ?? old.category_id,
+            serial_number:        serial_number        ?? old.serial_number,
+            express_service_code: express_service_code ?? old.express_service_code,
+            make_model:           make_model           ?? old.make_model,
+            purchase_date:        purchase_date        ?? old.purchase_date,
+            cost:                 cost                 ?? old.cost,
+            warranty_start_date:  warranty_start_date  ?? old.warranty_start_date,
+            warranty_expiry:      warranty_expiry      ?? old.warranty_expiry,
+            location:             location             ?? old.location,
+            status:               status               || old.status,
+            notes:                notes                ?? old.notes
         });
 
         if (status && status !== old.status) {
             await db.assets.addHistory({
                 asset_id: id, action_type: 'status_changed', performed_by: req.user.id,
-                previous_value: JSON.stringify({ status: old.status }), new_value: JSON.stringify({ status }),
+                previous_value: JSON.stringify({ status: old.status }),
+                new_value: JSON.stringify({ status }),
                 notes: `Status changed from ${old.status} to ${status}`
             });
         }
@@ -131,10 +165,10 @@ exports.assignAsset = async (req, res) => {
             return res.status(400).json({ error: 'Cannot assign a retired asset. Change its status first.' });
         }
         if (old.status === 'under_maintenance') {
-            return res.status(400).json({ error: 'Cannot assign an asset that is currently under maintenance. Complete maintenance first.' });
+            return res.status(400).json({ error: 'Cannot assign an asset that is currently under maintenance.' });
         }
 
-        // Notify previous assignee
+        // Notify previous assignee if changing
         if (old.assigned_to_user && old.assigned_to_user !== parseInt(assigned_to_user)) {
             const assetName = await db.assets.getName(id);
             await createNotification(old.assigned_to_user, 'asset_assigned', 'Asset Reassigned',
@@ -182,7 +216,10 @@ exports.unassignAsset = async (req, res) => {
             notes: 'Asset unassigned'
         });
 
-        await logAudit(req.user.id, 'asset', 'unassign', id, { assigned_to_user: old.assigned_to_user }, { assigned_to_user: null, status: 'available' }, req.ip);
+        await logAudit(req.user.id, 'asset', 'unassign', id,
+            { assigned_to_user: old.assigned_to_user },
+            { assigned_to_user: null, status: 'available' }, req.ip);
+
         res.json({ message: 'Asset unassigned successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -195,11 +232,16 @@ exports.getAssetHistory = async (req, res) => {
         const { page = 1, limit = 50 } = req.query;
         const offset = (parseInt(page) - 1) * parseInt(limit);
 
-        const { rows: history, total } = await db.assets.getHistory({ assetId: req.params.id, limit: parseInt(limit), offset });
+        const { rows: history, total } = await db.assets.getHistory({
+            assetId: req.params.id, limit: parseInt(limit), offset
+        });
 
         res.json({
             history,
-            pagination: { page: parseInt(page), limit: parseInt(limit), total, totalPages: Math.ceil(total / parseInt(limit)) }
+            pagination: {
+                page: parseInt(page), limit: parseInt(limit), total,
+                totalPages: Math.ceil(total / parseInt(limit))
+            }
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -226,7 +268,8 @@ exports.createCategory = async (req, res) => {
         await logAudit(req.user.id, 'asset', 'create_category', id, null, { name, description }, req.ip);
         res.status(201).json({ message: 'Category created', id });
     } catch (err) {
-        if (err.message && err.message.includes('unique')) return res.status(400).json({ error: 'Category already exists' });
+        if (err.message && err.message.includes('unique'))
+            return res.status(400).json({ error: 'Category already exists' });
         res.status(500).json({ error: err.message });
     }
 };
@@ -246,7 +289,8 @@ exports.updateCategory = async (req, res) => {
 exports.deleteCategory = async (req, res) => {
     try {
         const assetCount = await db.categories.getAssetCount(req.params.id);
-        if (assetCount > 0) return res.status(400).json({ error: `Cannot delete: ${assetCount} assets use this category` });
+        if (assetCount > 0)
+            return res.status(400).json({ error: `Cannot delete: ${assetCount} assets use this category` });
 
         await db.categories.remove(req.params.id);
         res.json({ message: 'Category deleted' });
