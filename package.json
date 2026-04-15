@@ -1,0 +1,23 @@
+{
+  "name": "asset-ticketing-system",
+  "version": "2.0.0",
+  "description": "Asset Management & Ticketing System — Monolith-Ready Micro Module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "db:init": "node config/db.js"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^8.0.5",
+    "pdfkit": "^0.15.0",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

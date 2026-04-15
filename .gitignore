@@ -1,25 +1,10 @@
-# =========================
-# Node.js & Dependencies
-# =========================
-**/node_modules/
-npm-debug.log*
-
-# =========================
-# Databases (CRITICAL)
-# =========================
-backend/local.db
-*.sqlite
-*.sqlite3
+node_modules/
+data/
+uploads/
 *.db
-*.db-journal
-
-# =========================
-# Environment Variables
-# =========================
 .env
+package-lock.json
 
-# =========================
-# OS Generated Files
-# =========================
-.DS_Store
-Thumbs.db
+# Old directories (kept for reference during migration, safe to delete)
+# frontend/
+# backend/
